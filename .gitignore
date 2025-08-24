@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.so
+*.dll
+
+.vscode/
+.idea/
+
+# временные/локальные данные и большие файлы
+data/
+*.csv
+*.txt
