@@ -31,3 +31,7 @@
 -`main.py` - все функции и пример расчета PSD.
 
 > Примечание: в `a2000_library.py` пути к динамической библиотеке локальные; для запуска их нужно подправить под свою систему. DLL от gfortran собирается командой `gfortran -shared -static-libgfortran -fPIC -ffixed-form -o a2000_module.dll a2000-field-line-f77.for a2012-v3_3-mlt-f77.for igrf13-sub-f77.for`
+
+# Примеры вывода
+![anim](https://github.com/user-attachments/assets/f207d95c-3076-406e-8c1d-9925d1db962f)
+![f(L*)](https://github.com/user-attachments/assets/9f0dd693-cb94-4f6b-8277-10885f72ab12)
