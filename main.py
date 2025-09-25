@@ -585,37 +585,6 @@ def find_passes(df, min_L=2.5, branch='both', L_threshold=0.01, time_gap_thresho
 
     return result_df.sort_values('Date/time_VAP').reset_index(drop=True)
 
-#не надо
-def read_input_data_swx(filename): #для qlook swx
-    with open(filename, 'r') as file:
-        lines = file.readlines()        #считываем все строки
-
-    column_names = []
-    for line in lines:
-        if "--" in line: #строки заголовка
-            parts = line.split("--") # разбиваем на номер - название
-            column_name = parts[1].strip().strip(";") # название столбца по заголовку, strip() и strip(';') удаля.т лишние пробелы и ';' из названия
-            column_names.append(column_name)
-
-    data_start_index = len(column_names) + 1 #индекс начала данных, "+1" нужно для пропуска строки "1 2 3 ..."
-
-    data = pd.read_csv(f"{filename}.txt", skiprows=data_start_index, header=None)
-    data.columns = column_names
-
-    #Приведение столбца времени к виду ut (дробное), iy, mo, d
-    data["Date/time"] = pd.to_datetime(data["Date/time"])
-    data["UT"] = round(data["Date/time"].dt.hour + data["Date/time"].dt.minute / 60 + data["Date/time"].dt.second / 3600, 3)
-    data["Year"] = data["Date/time"].dt.year
-    data["Month"] = data["Date/time"].dt.month
-    data["Day"] = data["Date/time"].dt.day
-
-    #В случае, если данные имеют временное разрешение меньше часа, нужно заполнить пропуски Dst, т.к. он часовой
-   # if (data["Date/time"][2].dt.hour - data["Date/time"][1].dt.hour) < 1:
-    data["Dst [nT]"] = pd.to_numeric(data["Dst [nT]"], errors='coerce') # заполняем 'N/A' числовыми значениями NaN
-    data["Dst [nT]"] = data["Dst [nT]"].ffill() #заполняем NaN повторяющимися значениями
-
-    return data             # возвращается объект pandas.Series! т. е. по сути это таблица, с названиями столбцов и данными
-
 
 def kinetic_energy(mu, B, alpha_K):
     """
@@ -1251,8 +1220,8 @@ def trace_drift_without_parallel(x_sat, solar_params, K_target):
     :return: значение L_star, RE
     """
     (X1, X2, X3, X4, X5, X6, X7, ut, iy, mo, id, ro, v, bimf, dst, al, sl, h) = solar_params
-    file_candidates = open(f"calculated magnetic field for drift trajectory\\{iy}_{mo}_{id}_{ut}.txt", "w")
-    file_candidates_full_trajectory = open(f"calculated magnetic field for drift trajectory\\{iy}_{mo}_{id}_{ut}_full.txt", "w")
+    #file_candidates = open(f"calculated magnetic field for drift trajectory\\{iy}_{mo}_{id}_{ut}.txt", "w")
+    #file_candidates_full_trajectory = open(f"calculated magnetic field for drift trajectory\\{iy}_{mo}_{id}_{ut}_full.txt", "w")
 
     start_point = [x_sat[0], x_sat[1], x_sat[2]] # Исходная точка в координатах GSM
 
@@ -1317,20 +1286,19 @@ def trace_drift_without_parallel(x_sat, solar_params, K_target):
     thetas_foot = [] # список theta_foot, который будет заполняться для каждого phi
     phis = [] #список phi, который соответствует списку thetas_phi
     for result in results:
-        if result["x_shell"] is not None:
-            file_candidates.write(
-                f"phi={result["phi"]},theta={result["theta"]}\tK:{result["K"]}\tL:{result["L"]}\n")
-            for counter in range(len(result["x_shell"])):
-                file_candidates.write(
-                    f"{result["x_shell"][counter][0]}\t{result["x_shell"][counter][1]}\t{result["x_shell"][counter][2]}\t{result["B_shell"][counter]}\t{result["B(3)_SM"][counter][0]}\t{result["B(3)_SM"][counter][1]}\t{result["B(3)_SM"][counter][2]}\n")
-            file_candidates.write("-------------------------------\n")
-
-            file_candidates_full_trajectory.write(
-                f"phi={result["phi"]},theta={result["theta"]}\tK:{result["K"]}\tL:{result["L"]}\n")
-            for counter in range(0, len(result["x_shell_full"])):
-                file_candidates_full_trajectory.write(
-                    f"{result["x_shell_full"][counter][0]}\t{result["x_shell_full"][counter][1]}\t{result["x_shell_full"][counter][2]}\t{result["B_shell_full"][counter]}\n")
-            file_candidates.write("-------------------------------\n")
+        #if result["x_shell"] is not None:
+        #    file_candidates.write(
+        #        f"phi={result["phi"]},theta={result["theta"]}\tK:{result["K"]}\tL:{result["L"]}\n")
+        #    for counter in range(len(result["x_shell"])):
+        #        file_candidates.write(
+        #            f"{result["x_shell"][counter][0]}\t{result["x_shell"][counter][1]}\t{result["x_shell"][counter][2]}\t{result["B_shell"][counter]}\t{result["B(3)_SM"][counter][0]}\t{result["B(3)_SM"][counter][1]}\t{result["B(3)_SM"][counter][2]}\n")
+        #    file_candidates.write("-------------------------------\n")
+        #    file_candidates_full_trajectory.write(
+        #        f"phi={result["phi"]},theta={result["theta"]}\tK:{result["K"]}\tL:{result["L"]}\n")
+        #    for counter in range(0, len(result["x_shell_full"])):
+        #        file_candidates_full_trajectory.write(
+        #            f"{result["x_shell_full"][counter][0]}\t{result["x_shell_full"][counter][1]}\t{result["x_shell_full"][counter][2]}\t{result["B_shell_full"][counter]}\n")
+        #    file_candidates.write("-------------------------------\n")
 
         if result["x_shell"] is not None:
             thetas_foot.append(result["theta_foot"])
@@ -1342,8 +1310,8 @@ def trace_drift_without_parallel(x_sat, solar_params, K_target):
     M = a2000_library.magnetic_moment(ut, id, mo, iy)
     L_star = 2 * np.pi * M / flux
 
-    file_candidates.close()
-    file_candidates_full_trajectory.close()
+    #file_candidates.close()
+    #file_candidates_full_trajectory.close()
     return L_star
 
 
@@ -1628,9 +1596,9 @@ def ut2hms(ut):
 
 def main():
 
-    raw_data = read_van_allen_SW_data_2files("2017\\K_700 mu_500\\RBSPA_REL04_ECT-MAGEIS-L3_10-11.10.2017.csv",
-                                             "2017\\K_700 mu_500\\sw_data 10-11.10.2017.txt",
-                                             "2017\\K_700 mu_500\\RBSP-A_MAGNETOMETER_1SEC-GSM_10-11.10.2017.csv")
+    raw_data = read_van_allen_SW_data_2files("test_data\\RBSPA_REL04_ECT-MAGEIS-L3_10-11.10.2017.csv",
+                                             "test_data\\sw_data 10-11.10.2017.txt",
+                                             "test_data\\RBSP-A_MAGNETOMETER_1SEC-GSM_10-11.10.2017.csv")
 
     K_target = 700
     mu_target = 100
@@ -1649,7 +1617,7 @@ def main():
     start_whole_program = time.perf_counter()
     with ProcessPoolExecutor() as executor:
         futures = []
-        for i in range(0, data.shape[0], 12):
+        for i in range(0, 24, 12):
             futures.append(executor.submit(one_step_sat,
                                            data=data,
                                            i=i,

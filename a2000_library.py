@@ -440,6 +440,84 @@ def gsm2g(x0, ut, id, mo, iyear):
     return x_geo_vec
 
 
+def gse2gsm(x0, ut, id, mo, iyear):
+    """
+    Переводит координаты из системы GSE в систему GSM, используя матрицу из TRANS.
+
+    :param x_0: [x, y, z] в GSE координатах
+    :param ut: время UT
+    :param id: день месяца
+    :param mo: номер месяца
+    :param iyear: год
+    :return: [x, y, z] в GSM координатах
+    """
+    iday = idd(iyear, mo, id)
+
+    x0_arr = np.array(x0, dtype=np.float32)
+
+    ut = ctypes.c_float(ut)
+    iday = ctypes.c_int(iday)
+    iyear = ctypes.c_int(iyear)
+    tpsi = ctypes.c_float(0.0)
+    BD = ctypes.c_float(0.0)
+
+    a2000_module.trans_(ctypes.byref(ut), ctypes.byref(iday), ctypes.byref(iyear), ctypes.byref(tpsi), ctypes.byref(BD))
+
+    tpsi = float(tpsi.value)
+    tpsi_rad = math.radians(tpsi)
+    cos_psi = np.cos(tpsi_rad)
+    sin_psi = np.sin(tpsi_rad)
+
+    gse2gsm_matrix = np.array([
+        [1.0, 0.0, 0.0],
+        [0.0, cos_psi, sin_psi],
+        [0.0, -sin_psi, cos_psi]
+    ], dtype=np.float32)
+
+    x_gsm_vec = np.dot(gse2gsm_matrix, x0_arr)
+
+    return x_gsm_vec
+
+
+def gsm2gse(x0, ut, id, mo, iyear):
+    """
+    Переводит координаты из системы GSM в систему GSE, используя матрицу из TRANS.
+
+    :param x_0: [x, y, z] в GSM координатах
+    :param ut: время UT
+    :param id: день месяца
+    :param mo: номер месяца
+    :param iyear: год
+    :return: [x, y, z] в GSE координатах
+    """
+    iday = idd(iyear, mo, id)
+
+    x0_arr = np.array(x0, dtype=np.float32)
+
+    ut = ctypes.c_float(ut)
+    iday = ctypes.c_int(iday)
+    iyear = ctypes.c_int(iyear)
+    tpsi = ctypes.c_float(0.0)
+    BD = ctypes.c_float(0.0)
+
+    a2000_module.trans_(ctypes.byref(ut), ctypes.byref(iday), ctypes.byref(iyear), ctypes.byref(tpsi), ctypes.byref(BD))
+
+    tpsi = float(tpsi.value)
+    tpsi_rad = math.radians(tpsi)
+    cos_psi = np.cos(tpsi_rad)
+    sin_psi = np.sin(tpsi_rad)
+
+    gsm2gse_matrix = np.array([
+        [1.0, 0.0, 0.0],
+        [0.0, cos_psi, -sin_psi],
+        [0.0, sin_psi, cos_psi]
+    ], dtype=np.float32)
+
+    x_gse_vec = np.dot(gsm2gse_matrix, x0_arr)
+
+    return x_gse_vec
+
+
 def one_step_line(X1, X2, X3, X4, X5, X6, X7,
                ut, iy, mo, id_val, ro, v, bimf,
                dst, al, x, sl, h):
